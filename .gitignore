@@ -1,0 +1,6 @@
+node_modules
+dist
+.npm-cache
+public/mediapipe
+.DS_Store
+*.log
