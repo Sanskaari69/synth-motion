@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#04050a" />
+    <meta name="description" content="SYNTH//MOTION — play a synthesizer with your hands. Webcam hand tracking, a Web Audio music engine, reactive 3D visuals and TouchDesigner OSC output." />
+    <title>SYNTH//MOTION</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304050a'/%3E%3Cpath d='M6 20c4-10 6 4 10-6s6 4 10-4' fill='none' stroke='%2335e8ff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="stage" aria-hidden="true"></div>
+    <video id="cam" playsinline muted></video>
+
+    <main id="hud" hidden>
+      <header class="top">
+        <div class="brand">SYNTH<span>//</span>MOTION</div>
+        <div class="chips" id="chips" role="status" aria-live="polite">
+          <span class="chip" id="chip-mode">—</span>
+          <span class="chip" id="chip-hands">0 hands</span>
+          <span class="chip" id="chip-fps">— fps</span>
+          <span class="chip" id="chip-td" title="TouchDesigner bridge">TD off</span>
+        </div>
+        <button class="icon-btn" id="btn-panel" aria-label="Toggle settings panel" aria-expanded="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+        </button>
+      </header>
+
+      <aside class="legend" id="legend">
+        <div class="leg lead"><b>RIGHT HAND · LEAD</b><span>pinch = play &nbsp;·&nbsp; ← → pitch &nbsp;·&nbsp; ↑ ↓ brightness &nbsp;·&nbsp; tilt = vibrato</span></div>
+        <div class="leg rhythm"><b>LEFT HAND · BEAT</b><span>open = more layers &nbsp;·&nbsp; ← → key &nbsp;·&nbsp; ↑ ↓ space</span></div>
+      </aside>
+
+      <section class="readout" aria-label="Sound readout">
+        <div class="note" id="note">—</div>
+        <div class="steps" id="steps" aria-hidden="true"></div>
+        <div class="meters" aria-hidden="true"><i id="m-bass"></i><i id="m-mid"></i><i id="m-high"></i></div>
+      </section>
+
+      <aside class="panel" id="panel">
+        <h2>Sound</h2>
+        <label>Scale
+          <select id="ctl-scale"></select>
+        </label>
+        <label>Tempo <output id="out-bpm">118</output>
+          <input id="ctl-bpm" type="range" min="80" max="160" step="1" value="118" />
+        </label>
+        <label>Volume <output id="out-vol">80</output>
+          <input id="ctl-vol" type="range" min="0" max="100" step="1" value="80" />
+        </label>
+        <label class="row"><input id="ctl-auto" type="checkbox" checked /> Auto beat <small>plays a groove when your left hand is away</small></label>
+
+        <h2>Visuals</h2>
+        <label class="row"><input id="ctl-backdrop" type="checkbox" checked /> Camera backdrop</label>
+        <label class="row"><input id="ctl-bloom" type="checkbox" checked /> Bloom glow</label>
+        <label>Quality
+          <select id="ctl-quality"><option value="auto">Auto</option><option value="0">High</option><option value="1">Medium</option><option value="2">Low</option></select>
+        </label>
+
+        <h2>TouchDesigner</h2>
+        <label class="row"><input id="ctl-td" type="checkbox" /> Send to bridge <small id="td-state">off</small></label>
+        <label>Bridge URL <input id="ctl-td-url" type="text" value="ws://localhost:8787" spellcheck="false" autocomplete="off" /></label>
+
+        <h2>Session</h2>
+        <div class="btns">
+          <button id="btn-mute">Mute <kbd>M</kbd></button>
+          <button id="btn-source">Use demo <kbd>D</kbd></button>
+          <button id="btn-full">Fullscreen <kbd>F</kbd></button>
+          <button id="btn-hide">Hide UI <kbd>H</kbd></button>
+        </div>
+      </aside>
+    </main>
+
+    <section id="start" class="start">
+      <div class="card">
+        <div class="brand big">SYNTH<span>//</span>MOTION</div>
+        <p class="tag">Play a synthesizer with your bare hands.</p>
+        <ul class="how">
+          <li><b>Right hand</b> plays the lead — pinch thumb &amp; index to sound a note, slide to change pitch.</li>
+          <li><b>Left hand</b> conducts the beat — open your palm to bring in drums, bass and arps.</li>
+        </ul>
+        <div class="cta">
+          <button class="primary" id="btn-cam">Start with camera</button>
+          <button id="btn-demo">Try demo · no camera</button>
+        </div>
+        <p class="fine" id="start-msg">Camera frames are processed on your device and never uploaded. Turn your sound on.</p>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
