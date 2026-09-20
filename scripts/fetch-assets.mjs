@@ -1,5 +1,5 @@
 // Copies the MediaPipe WASM runtime out of node_modules and downloads the
-// (free, Google-hosted) .task models into public/mediapipe so the app runs
+// (free, Google-hosted) hand model into public/mediapipe so the app runs
 // offline. Everything here is best-effort: at runtime the app falls back to
 // the jsDelivr / Google Storage CDNs if these files are missing.
 import { cp, mkdir, stat, writeFile } from 'node:fs/promises';
@@ -13,8 +13,6 @@ const out = resolve(root, 'public/mediapipe');
 const MODELS = {
   'hand_landmarker.task':
     'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-  'face_landmarker.task':
-    'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
 };
 
 async function copyWasm() {
