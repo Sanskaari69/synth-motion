@@ -76,6 +76,17 @@ MediaPipe docs to a temp folder; that section is skipped if it can't).
 * Hand roles are decided by screen position (left half = rhythm, right half = lead), not by MediaPipe's handedness label; crossing your hands swaps roles.
 * **Not verified**: real-webcam latency by hand (tests use a still photo and synthetic hands), Safari/Firefox, and `touchdesigner/build_network.py` inside TouchDesigner.
 
+## Deploy to Vercel
+
+The repo is Vercel-ready (`vercel.json`). It's a static Vite build; the MediaPipe wasm/model are fetched by `postinstall`
+during Vercel's install step, so nothing extra to configure.
+
+* **Dashboard (auto-deploys on every push):** vercel.com/new → import `Sanskaari69/synth-motion` → Deploy. Defaults are correct.
+* **CLI:** `npx vercel login`, then `npx vercel` (preview) and `npx vercel --prod`.
+
+Vercel serves HTTPS, which the camera requires. The TouchDesigner bridge is a local process: from the deployed site, Chrome
+and Firefox can still reach `ws://localhost:8787`, Safari blocks it. The bridge only ever runs on your own machine.
+
 ## Build
 
 `npm run build` → `dist/` (static; serve over HTTPS or localhost for camera access).
