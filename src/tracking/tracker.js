@@ -1,6 +1,6 @@
 // MediaPipe HandLandmarker wrapper + webcam helper. Models/wasm are served from /mediapipe
 // (fetched by scripts/fetch-assets.mjs); if they're missing we fall back to the public CDNs.
-import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+// The vision bundle is loaded lazily in init(), so demo-mode visitors never download it.
 
 const BASE = import.meta.env.BASE_URL;
 const LOCAL = { wasm: `${BASE}mediapipe/wasm`, model: `${BASE}mediapipe/models/hand_landmarker.task` };
@@ -29,6 +29,7 @@ export class HandTracker {
   }
 
   async init(onStatus = () => {}) {
+    const { FilesetResolver, HandLandmarker } = await import('@mediapipe/tasks-vision');
     const useLocal = (await exists(LOCAL.model)) && (await exists(`${LOCAL.wasm}/vision_wasm_internal.js`));
     const src = useLocal ? LOCAL : CDN;
     this.source = useLocal ? 'local' : 'cdn';

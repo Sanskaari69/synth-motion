@@ -12,16 +12,20 @@ webcam ─▶ MediaPipe hand landmarks ─▶ features/controller ─┬─▶ W
 
 ## Run it
 
+Requires **Node 22** and, for the camera, a browser on `http://localhost` or HTTPS.
+
 ```bash
-npm install          # also copies the MediaPipe wasm and downloads the hand model into public/mediapipe
-npm run dev          # http://localhost:5173  (localhost is a secure context, so the camera works)
+npm install          # also copies the MediaPipe wasm and downloads the hand model (~8 MB) into public/mediapipe
+npm run dev          # http://localhost:5173  (if the port is busy Vite picks the next one and prints it)
 npm run dev:all      # same + the TouchDesigner bridge
 ```
 
 Click **Start with camera** (or **Try demo**, which uses two synthetic hands and needs no camera). Turn your sound on.
 
-If `npm install` fails with an `EACCES` on `~/.npm` (old root-owned cache), use `npm install --cache ./.npm-cache`.
-If the model can't be downloaded at install time, the app falls back to the jsDelivr / Google Storage CDNs at runtime.
+* If `npm install` fails with `EACCES` on `~/.npm` (an old root-owned cache), either fix it once with
+  `sudo chown -R "$(id -u):$(id -g)" ~/.npm` or run `npm install --cache ./.npm-cache`.
+* If the model can't be downloaded at install time, the app falls back to the jsDelivr / Google Storage CDNs at runtime
+  (the panel/console shows nothing special; camera mode just needs internet then).
 
 ## How to play
 
@@ -61,12 +65,15 @@ Full guide: [`docs/TOUCHDESIGNER.md`](docs/TOUCHDESIGNER.md).
 ## Tests
 
 ```bash
-npm test            # 21 unit tests: geometry round-trips, music theory, controller, OSC encoding, bridge over real sockets
-npm run test:e2e    # 29 checks in real headless Chrome: UI wiring, audio running, OSC → UDP, and MediaPipe on a photo of two hands
+npm test            # 21 unit tests: geometry round-trips, music theory, controller, OSC codec, bridge over real sockets
+npm run test:e2e    # 50 checks in real headless Chrome (see below)
 ```
 
-`test:e2e` needs Google Chrome installed and network access on first run (it downloads a sample hand photo from Google's
-MediaPipe docs to a temp folder; that section is skipped if it can't).
+`test:e2e` needs Google Chrome installed, and network access on first run (it downloads a sample hand photo from Google's
+MediaPipe docs to a temp folder, and one scenario loads MediaPipe from the CDN). It covers: UI wiring and audio running,
+a denied camera, the OSC bridge in both directions over real UDP/WebSocket sockets, MediaPipe finding two hands in a photo,
+and — against the **production build served with the headers from `vercel.json`** — camera permission policy, asset MIME
+types/caching, a real `getUserMedia` stream (Chrome's fake camera device), and the CDN fallback when the local model is missing.
 
 ## Performance & limits (measured on an M1 Mac, Chrome)
 
@@ -74,18 +81,31 @@ MediaPipe docs to a temp folder; that section is skipped if it can't).
 * An adaptive governor steps quality *high → medium → low* if frames stay slow; pin it in the panel.
 * Detection runs on the main thread, so very slow machines lose smoothness in camera mode first.
 * Hand roles are decided by screen position (left half = rhythm, right half = lead), not by MediaPipe's handedness label; crossing your hands swaps roles.
-* **Not verified**: real-webcam latency by hand (tests use a still photo and synthetic hands), Safari/Firefox, and `touchdesigner/build_network.py` inside TouchDesigner.
+* **Not verified**: gesture feel and latency with a live human hand (tests use a still photo, synthetic hands and Chrome's fake camera), Safari/Firefox, a real Vercel deployment, and `touchdesigner/build_network.py` inside TouchDesigner.
 
 ## Deploy to Vercel
 
-The repo is Vercel-ready (`vercel.json`). It's a static Vite build; the MediaPipe wasm/model are fetched by `postinstall`
-during Vercel's install step, so nothing extra to configure.
+It's a static Vite app; `vercel.json` sets the framework, the camera `Permissions-Policy`, security headers and caching.
 
-* **Dashboard (auto-deploys on every push):** vercel.com/new → import `Sanskaari69/synth-motion` → Deploy. Defaults are correct.
-* **CLI:** `npx vercel login`, then `npx vercel` (preview) and `npx vercel --prod`.
+**How the MediaPipe files ship:** `public/mediapipe/` (≈27 MB: a ~10 MB wasm, a ~8 MB hand model, loaders) is *not* in git.
+`npm ci`'s `postinstall` script recreates it on Vercel during the install step, and it ends up inside `dist/`. Each file is
+well under Vercel's limits. If the model download fails at build time the site still works: the browser loads MediaPipe
+from the public CDNs instead. `/mediapipe/*` is served with `must-revalidate` (filenames aren't hashed); `/assets/*` is
+immutable (hashed).
 
-Vercel serves HTTPS, which the camera requires. The TouchDesigner bridge is a local process: from the deployed site, Chrome
-and Firefox can still reach `ws://localhost:8787`, Safari blocks it. The bridge only ever runs on your own machine.
+**Option A: GitHub integration** (auto-deploys on each push): vercel.com/new → import `Sanskaari69/synth-motion` → Deploy.
+Framework, install, build and output settings are picked up from `vercel.json`.
+
+**Option B: CLI**
+
+```bash
+npx vercel login          # once (opens the browser)
+npx vercel --prod         # first run asks to link/create the project; accept the defaults
+```
+
+The camera needs HTTPS, which Vercel provides. The TouchDesigner bridge is a local process: from the deployed site
+Chrome and Firefox can still reach `ws://localhost:8787` (Safari blocks it). `?bridge=ws://…` in the URL is honoured only
+for loopback hosts; type any other URL into the panel yourself.
 
 ## Build
 

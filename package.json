@@ -24,5 +24,8 @@
   "devDependencies": {
     "vite": "^7.0.0",
     "playwright-core": "^1.49.0"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

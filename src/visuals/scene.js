@@ -403,6 +403,8 @@ export class Visuals {
     this.qualityIndex = Math.max(0, Math.min(QUALITY.length - 1, i));
     if (lock) this.locked = true;
     this.particles.geometry.setDrawRange(0, QUALITY[this.qualityIndex].particles);
+    // Apply bloom now, not on the next frame, so quality and bloom are never observed out of step.
+    this.bloom.enabled = QUALITY[this.qualityIndex].bloom && this.bloomEnabled !== false;
     this._applySize();
     this.onQuality?.(QUALITY[this.qualityIndex].name);
   }

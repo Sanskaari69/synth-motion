@@ -21,7 +21,17 @@ try {
 } catch {
   /* private mode etc. */
 }
-if (qs.get('bridge')) {
+// `?bridge=ws://…` is a convenience for local use. Only loopback targets are honoured from the URL, so a crafted
+// link can't make someone's browser stream their hand data to an arbitrary host (typing a URL in the panel is fine).
+const isLoopbackWs = (u) => {
+  try {
+    const { protocol, hostname } = new URL(u);
+    return /^wss?:$/.test(protocol) && ['localhost', '127.0.0.1', '[::1]'].includes(hostname);
+  } catch {
+    return false;
+  }
+};
+if (qs.get('bridge') && isLoopbackWs(qs.get('bridge'))) {
   settings.tdUrl = qs.get('bridge');
   settings.td = true;
 }
@@ -222,7 +232,6 @@ const last = { lead: null, rhythm: null };
 let fpsAcc = 0;
 let fpsN = 0;
 let uiTick = 0;
-const sinceKick = { v: 99 };
 
 function frame(now) {
   requestAnimationFrame(frame);
